@@ -1,11 +1,10 @@
 version: "3.3"
 services:
-  mysql:
+  nas-mysql:
     image: mysql:8
-    container_name: "mysql"
+    container_name: "nas-mysql"
     restart: always
     privileged: true
-    platform: linux/amd64
     command:
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
@@ -13,8 +12,8 @@ services:
       --explicit_defaults_for_timestamp=true
       --lower_case_table_names=1
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_PASSWORD=nas
+      - MYSQL_ROOT_PASSWORD=Nas
+      - MYSQL_PASSWORD=Nas
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nas
     volumes:
@@ -28,21 +27,23 @@ services:
     container_name: "nextcloud"
     restart: always
     privileged: true
-    ports:
-      - 8080:80
     volumes:
       - ./nextcloud:/var/www/html
     environment:
-      - MYSQL_PASSWORD=nas
+      - MYSQL_PASSWORD=Nas
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nas
-    depends_on: 
-      - mysql
+    depends_on:
+      - nas-mysql
+      - nas-ftp
+      - nas-redis
+    ports:
+      - 8081:80
     networks:
       - custom_net
-  nginx:
+  nas-nginx:
     image: openresty/openresty:alpine
-    container_name: "nginx"
+    container_name: "nas-nginx"
     restart: always
     privileged: true
     volumes:
@@ -50,13 +51,38 @@ services:
       - ./nginx/cert:/data/cert
       - ./nginx/logs:/data/logs
     ports:
-      - 80:80
-      - 443:443
-    depends_on: 
+      - 8080:80
+      - 8443:443
+    depends_on:
       - nextcloud
+    networks:
+      - custom_net
+  nas-ftp:
+    image: fauria/vsftpd
+    container_name: "nas-ftp"
+    restart: always
+    privileged: true
+    environment:
+      - FTP_USER=nas
+      - FTP_PASS=Nas
+      - PASV_ADDRESS=0.0.0.0
+    volumes:
+      - ./ftp:/home/vsftpd
+    ports:
+      - 20-21:20-21
+      - 21100-21110:21100-21110
+    networks:
+      - custom_net
+  nas-redis:
+    build: ./redis
+    container_name: "nas-redis"
+    restart: always
+    privileged: true
+    ports:
+      - 6379:6379
     networks:
       - custom_net
 networks:
   custom_net:
     external:
-      name: app_net  
+      name: app_net
