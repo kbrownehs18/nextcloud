@@ -18,10 +18,8 @@ services:
       - MYSQL_USER=nas
     volumes:
       - ./mysql/data:/var/lib/mysql
-    ports:
-      - 3306:3306
     networks:
-      - custom_net
+      - nas_net
   nextcloud:
     image: nextcloud
     container_name: "nextcloud"
@@ -37,10 +35,8 @@ services:
       - nas-mysql
       - nas-ftp
       - nas-redis
-    ports:
-      - 8081:80
     networks:
-      - custom_net
+      - nas_net
   nas-nginx:
     image: openresty/openresty:alpine
     container_name: "nas-nginx"
@@ -56,7 +52,7 @@ services:
     depends_on:
       - nextcloud
     networks:
-      - custom_net
+      - nas_net
   nas-ftp:
     image: fauria/vsftpd
     container_name: "nas-ftp"
@@ -68,21 +64,16 @@ services:
       - PASV_ADDRESS=0.0.0.0
     volumes:
       - ./ftp:/home/vsftpd
-    ports:
-      - 20-21:20-21
-      - 21100-21110:21100-21110
     networks:
-      - custom_net
+      - nas_net
   nas-redis:
     build: ./redis
     container_name: "nas-redis"
     restart: always
     privileged: true
-    ports:
-      - 6379:6379
     networks:
-      - custom_net
+      - nas_net
 networks:
-  custom_net:
+  nas_net:
     external:
-      name: app_net
+      name: nas_net
