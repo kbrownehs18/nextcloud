@@ -307,10 +307,12 @@ server {
 * redis/Dockerfile
 
 ~~~conf
-FROM redis:6
+FROM redis:5
 COPY redis.conf /usr/local/etc/redis/redis.conf
 CMD [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
 ~~~
+
+> redis6 nextcloud暂时有点问题  
 
 * redis/redis.conf
 ~~~conf
@@ -460,6 +462,16 @@ server {
 * 使用ftp比较方便，配置外置存储
 * 启用应用 External storage support	
 * docker-compose.yml中把需要共享的存储配置到ftp下
+
+~~~conf
+      - /mnt/e:/home/vsftpd/nas/Family
+      - /mnt/f:/home/vsftpd/nas/Works
+      - /mnt/g:/home/vsftpd/nas/Amusement
+      - /mnt/h:/home/vsftpd/nas/Robbie
+~~~
+
+> 把磁盘映射到ftp下  
+
 * 然后配置外部存储
 
 ### 内网DNS
