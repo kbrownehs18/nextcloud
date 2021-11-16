@@ -221,7 +221,6 @@ services:
     environment:
       - FTP_USER=nas
       - FTP_PASS=Nas
-      - PASV_ADDRESS=0.0.0.0
     volumes:
       - ./ftp:/home/vsftpd
     networks:
