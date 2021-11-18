@@ -21,7 +21,8 @@ services:
     networks:
       - nas_net
   nextcloud:
-    image: nextcloud
+#    image: nextcloud
+    build: . 
     container_name: "nextcloud"
     restart: always
     privileged: true
