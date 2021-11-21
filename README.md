@@ -483,6 +483,65 @@ server {
 
 [下载](https://nextcloud.com/install/#install-clients)
 
+### Windows安装SMB服务
 
+* 设置共享用户账号
+* 设置共享目录
 
+### 配置WebDAV
+
+[nginx-WebDAV](https://github.com/arut/nginx-dav-ext-module)
+
+* 安装nginx扩展
+* 根据官方文档
+
+* 安装htpasswd命令
+* apt install apache2-utils 
+* 生成密码
+* htpasswd -c /data/htpasswd/dav dav
+
+* 配置nginx
+
+~~~conf
+server {
+  listen 8443 ssl;
+  server_name wd.mynas.com;
+
+  error_log /data/logs/wd.mynas.com_error.log;
+  access_log off;
+  
+  index index.html;
+
+  ssl_certificate /data/cert/n.ekuy.com.pem;
+  ssl_certificate_key /data/cert/n.ekuy.com.key;
+  ssl_session_timeout 5m;
+  ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_prefer_server_ciphers on;
+
+  location / {
+    set $dest $http_destination;
+    if (-d $request_filename) {
+        rewrite ^(.*[^/])$ $1/;
+        set $dest $dest/;
+    }
+    if ($request_method ~ (MOVE|COPY)) {
+        more_set_input_headers 'Destination: $dest';
+    }
+
+    if ($request_method ~ MKCOL) {
+        rewrite ^(.*[^/])$ $1/ break;
+    }
+
+    dav_methods PUT DELETE MKCOL COPY MOVE;
+    dav_ext_methods PROPFIND OPTIONS;
+    dav_access user:rw;
+    create_full_put_path  on;
+    root /data/webdav;
+
+    auth_basic "Restricted access";
+    auth_basic_user_file /data/htpasswd/.webdav;
+  }
+}
+~~~
 
